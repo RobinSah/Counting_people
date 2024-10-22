@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computer Vision Project - Video Processing</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(to right, #00c6ff, #0072ff);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: #fff;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+        }
+
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            width: 400px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        #video-input {
+            display: block;
+            margin: 10px 0;
+            font-size: 1rem;
+        }
+
+        button {
+            background-color: #ff4081;
+            color: white;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #ff1e6d;
+        }
+
+        #output-container, #video-preview-container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            width: 700px;
+            text-align: center;
+            display: none;
+            margin-top: 20px;
+        }
+
+        h2 {
+            color: #0072ff;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        #output-video, #preview-video {
+            width: 100%;
+            border-radius: 8px;
+            border: 2px solid #0072ff;
+        }
+
+        #object-counts {
+            margin-top: 15px;
+            font-weight: bold;
+            color: #333;
+            font-size: 1.2rem;
+        }
+
+        .loading-text {
+            color: #ff6347;
+            font-size: 1.2rem;
+        }
+
+        /* Responsive Design */
+        @media screen and (max-width: 768px) {
+            form, #output-container, #video-preview-container {
+                width: 90%;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Computer Vision Project</h1>
+
+    <form method="POST" enctype="multipart/form-data" id="upload-form">
+        <input type="file" name="video" id="video-input" accept="video/*" required>
+        <button type="submit">Upload and Process Video</button>
+    </form>
+
+    <!-- Preview Uploaded Video -->
+    <div id="video-preview-container">
+        <h2>Uploaded Video Preview:</h2>
+        <video controls id="preview-video"></video>
+    </div>
+
+    <!-- Processed Video and Object Count -->
+    <div id="output-container">
+        <h2>Processed Video Output:</h2>
+        <video controls id="output-video"></video>
+        <div id="object-counts"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('upload-form');
+        const videoInput = document.getElementById('video-input');
+        const previewContainer = document.getElementById('video-preview-container');
+        const previewVideo = document.getElementById('preview-video');
+        const outputContainer = document.getElementById('output-container');
+        const outputVideo = document.getElementById('output-video');
+        const objectCountsDiv = document.getElementById('object-counts');
+
+        // Show video preview when a file is selected
+        videoInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const fileURL = URL.createObjectURL(file);
+                previewVideo.src = fileURL;
+                previewContainer.style.display = 'block';
+            } else {
+                previewContainer.style.display = 'none';
+            }
+        });
+
+        // Handle form submission for video processing
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData(form);
+
+            // Display loading indicator
+            outputContainer.innerHTML = '<p class="loading-text">Processing video, please wait...</p>';
+            outputContainer.style.display = 'block';
+
+            const response = await fetch('/', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                outputVideo.src = `/processed/${data.video_url}`; // Update video source with processed video
+                outputContainer.innerHTML = ''; // Clear the loading text
+                outputContainer.appendChild(outputVideo); // Append video element
+                outputContainer.appendChild(objectCountsDiv); // Append object counts
+                outputVideo.load(); // Ensure the video loads
+                outputVideo.play(); // Automatically play the video if desired
+            } else {
+                outputContainer.innerHTML = '<p class="loading-text">Error processing video.</p>';
+            }
+        });
+    </script>
+
+</body>
+</html>
